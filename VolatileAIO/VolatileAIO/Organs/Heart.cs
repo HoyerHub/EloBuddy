@@ -14,6 +14,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using Newtonsoft.Json;
 using SharpDX;
+using VolatileAIO.Extensions.Jungle;
 using VolatileAIO.Organs.Brain;
 using VolatileAIO.Organs.Brain.Cars;
 using Activator = VolatileAIO.Organs.Brain.Activator;
@@ -124,7 +125,7 @@ namespace VolatileAIO.Organs
             VolatileMenu.AddLabel(
                 "*Orbwalker requires reload. Press f5 to reload, and please turn off EB Orbwalker Drawings");
             OrbHandler();
-            if (!ExtensionLoader.IncludesChampion(Player.ChampionName)) return;
+            if (!ExtensionLoader.IncludesChampion(Player.ChampionName) && Player.ChampionName.ToLower() != "leesin") return;
             CastManager.MenuInit();
             ManaManager = new ManaManager();
             AutoLeveler = new AutoLeveler();
