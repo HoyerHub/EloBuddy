@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
+using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
 using SharpDX;
 using Color = System.Drawing.Color;
@@ -21,13 +22,14 @@ namespace StereotypeLucian
 
         public static void OnDraw(EventArgs args)
         {
-            if (StereotypeLucian.Get("dmode") == 0) DrawRangeLines();
-            if (StereotypeLucian.Get("dmode") == 1) DrawRangeCircles();
+            if (Player.IsDead) return;
+            if (StereotypeLucian.DrawMenu["dmode"].Cast<Slider>().CurrentValue == 0) DrawRangeLines();
+            if (StereotypeLucian.DrawMenu["dmode"].Cast<Slider>().CurrentValue == 1) DrawRangeCircles();
         }
 
         private static void DrawRangeCircles()
         {
-            if (StereotypeLucian.Use("dq"))
+            if (StereotypeLucian.DrawMenu["dq"].Cast<CheckBox>().CurrentValue)
             {
                 if (Spells[0].IsReady())
                     new Circle
@@ -44,7 +46,7 @@ namespace StereotypeLucian
                         BorderWidth = 1f
                     }.Draw(Player.Position);
             }
-            if (StereotypeLucian.Use("dq1"))
+            if (StereotypeLucian.DrawMenu["dw"].Cast<CheckBox>().CurrentValue)
             {
                 if (Spells[1].IsReady())
                     new Circle
@@ -61,7 +63,7 @@ namespace StereotypeLucian
                         BorderWidth = 1f
                     }.Draw(Player.Position);
             }
-            if (StereotypeLucian.Use("dw"))
+            if (StereotypeLucian.DrawMenu["de"].Cast<CheckBox>().CurrentValue)
             {
                 if (Spells[2].IsReady())
                     new Circle
@@ -78,7 +80,7 @@ namespace StereotypeLucian
                         BorderWidth = 1f
                     }.Draw(Player.Position);
             }
-            if (StereotypeLucian.Use("de"))
+            if (StereotypeLucian.DrawMenu["dr"].Cast<CheckBox>().CurrentValue)
             {
                 if (Spells[3].IsReady())
                     new Circle
@@ -92,23 +94,6 @@ namespace StereotypeLucian
                     {
                         Color = Color.Firebrick,
                         Radius = Spells[3].Range,
-                        BorderWidth = 1f
-                    }.Draw(Player.Position);
-            }
-            if (StereotypeLucian.Use("dr"))
-            {
-                if (Spells[4].IsReady())
-                    new Circle
-                    {
-                        Color = Color.Chartreuse,
-                        Radius = Spells[4].Range,
-                        BorderWidth = 1f
-                    }.Draw(Player.Position);
-                else
-                    new Circle
-                    {
-                        Color = Color.Firebrick,
-                        Radius = Spells[4].Range,
                         BorderWidth = 1f
                     }.Draw(Player.Position);
             }
@@ -139,7 +124,6 @@ namespace StereotypeLucian
                 var s = from spell in Spells where spell.IsLearned select spell.Range;
                 var spells = s.ToList();
                 spells.Sort();
-
                 foreach (var spell in spells)
                 {
                     var range = (uint)0;
@@ -171,7 +155,6 @@ namespace StereotypeLucian
                         spellranges.Add(range,
                             new List<SpellSlot> { Spells.Find(sp => sp.Range == spell).Slot });
                 }
-
                 var i = 0;
                 var lastloc = new Vector3(0, 0, 0);
                 foreach (var range in spellranges)

@@ -20,7 +20,7 @@ namespace StereotypeLucian
         public static Spell.Skillshot W;
         public static Spell.Skillshot E;
         public static Spell.Skillshot R;
-        public static Menu CheapAssMenu;
+        public static Menu CheapAssMenu, DrawMenu;
         public static bool Passive;
         public static int RandomizerOne, RandomizerTwo;
 
@@ -31,9 +31,10 @@ namespace StereotypeLucian
             AndThenLetsDoTheMenu();
             UpdateSliderOne();
             UpdateSliderTwo();
+            UpdateSliderThree();
             Draw.Spells.Add(Q);
-            Draw.Spells.Add(Q1);
             Draw.Spells.Add(W);
+            Draw.Spells.Add(E);
             Draw.Spells.Add(R);
 
             Game.OnUpdate += NowLetsDoThis50TimesPerSecond;
@@ -236,14 +237,13 @@ namespace StereotypeLucian
             CheapAssMenu.AddGroupLabel("General Settings");
             CheapAssMenu.Add("mtf", new Slider("ManaSlider for Farm", 75));
 
-            var DrawMenu = CheapAssMenu.AddSubMenu("Drawings", "draw");
-            CheapAssMenu.Add("dmode", new Slider("Draw Mode", 0, 0, 2)).OnValueChange += DrawMode;
-            CheapAssMenu.AddSeparator();
-            CheapAssMenu.Add("dq", new CheckBox("Draw Q Range"));
-            CheapAssMenu.Add("dq1", new CheckBox("Draw Q Extended Range"));
-            CheapAssMenu.Add("dw", new CheckBox("Draw W Range"));
-            CheapAssMenu.Add("de", new CheckBox("Draw E Range"));
-            CheapAssMenu.Add("dr", new CheckBox("Draw R Range"));
+            DrawMenu = CheapAssMenu.AddSubMenu("Drawings", "draw");
+            DrawMenu.Add("dmode", new Slider("Draw Mode", 0, 0, 2)).OnValueChange += DrawMode;
+            DrawMenu.AddSeparator();
+            DrawMenu.Add("dq", new CheckBox("Draw Q Range"));
+            DrawMenu.Add("dw", new CheckBox("Draw W (+ Long Q) Range"));
+            DrawMenu.Add("de", new CheckBox("Draw E Range"));
+            DrawMenu.Add("dr", new CheckBox("Draw R Range"));
         }
 
         private static void DrawMode(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
@@ -255,10 +255,10 @@ namespace StereotypeLucian
         {
             var sstring = "Draw Mode: ";
 
-            switch (Get("dmode"))
+            switch (DrawMenu["dmode"].Cast<Slider>().CurrentValue)
             {
                 case 0:
-                    sstring = sstring + "Volatile© RangeLine™";
+                    sstring = sstring + "Volatile RangeLine™";
                     break;
                 case 1:
                     sstring = sstring + "Range Circles";
@@ -267,7 +267,21 @@ namespace StereotypeLucian
                     sstring = sstring + "None";
                     break;
             }
-            CheapAssMenu["dmode"].Cast<Slider>().DisplayName = sstring;
+            if (DrawMenu["dmode"].Cast<Slider>().CurrentValue == 1)
+            {
+                DrawMenu["dq"].Cast<CheckBox>().IsVisible = true;
+                DrawMenu["dw"].Cast<CheckBox>().IsVisible = true;
+                DrawMenu["de"].Cast<CheckBox>().IsVisible = true;
+                DrawMenu["dr"].Cast<CheckBox>().IsVisible = true;
+            }
+            else
+            {
+                DrawMenu["dq"].Cast<CheckBox>().IsVisible = false;
+                DrawMenu["dw"].Cast<CheckBox>().IsVisible = false;
+                DrawMenu["de"].Cast<CheckBox>().IsVisible = false;
+                DrawMenu["dr"].Cast<CheckBox>().IsVisible = false;
+            }
+            DrawMenu["dmode"].Cast<Slider>().DisplayName = sstring;
         }
 
         private static void Speed(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
