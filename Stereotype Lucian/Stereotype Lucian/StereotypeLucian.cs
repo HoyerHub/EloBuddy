@@ -5,6 +5,7 @@ using EloBuddy;
 using EloBuddy.SDK;
 using EloBuddy.SDK.Constants;
 using EloBuddy.SDK.Enumerations;
+using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Menu.Values;
 using SharpDX;
@@ -21,17 +22,24 @@ namespace StereotypeLucian
         public static Spell.Skillshot R;
         public static Menu CheapAssMenu;
         public static bool Passive;
+        public static int RandomizerOne, RandomizerTwo;
 
         public StereotypeLucian()
         {
             Hacks.RenderWatermark = false;
             LetsLoadSomeSpells();
             AndThenLetsDoTheMenu();
-            UpdateSlider();
+            UpdateSliderOne();
+            UpdateSliderTwo();
+            Draw.Spells.Add(Q);
+            Draw.Spells.Add(Q1);
+            Draw.Spells.Add(W);
+            Draw.Spells.Add(R);
 
             Game.OnUpdate += NowLetsDoThis50TimesPerSecond;
             Obj_AI_Base.OnProcessSpellCast += DoThisOnSpellCastsOnly;
             Orbwalker.OnPostAttack += PrepareYourAnus;
+            Drawing.OnDraw += Draw.OnDraw;
         }
 
         private void PrepareYourAnus(AttackableUnit target, EventArgs args)
@@ -43,7 +51,7 @@ namespace StereotypeLucian
                     Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
                 {
                     Core.DelayAction(() => HereComesTheBrokenStuff(target, args),
-                        Game.Ping * (new Random().Next(16, 20) / 10));
+                        Game.Ping * (new Random().Next(RandomizerOne, RandomizerTwo) / 10));
                 }
             }
 
@@ -113,7 +121,7 @@ namespace StereotypeLucian
                     }
                 }
             }
-            else if (braveNigga is Obj_AI_Minion && Mode(Orbwalker.ActiveModes.LaneClear))
+            else if (braveNigga is Obj_AI_Minion && Mode(Orbwalker.ActiveModes.LaneClear) && BikeThief.ManaPercent > Get("mtf"))
             {
                 var minions =
                     EntityManager.MinionsAndMonsters.EnemyMinions.Where(
@@ -168,19 +176,7 @@ namespace StereotypeLucian
             }
         }
 
-        public static Vector2 RealBlackMagic(Vector2 point1, Vector2 point2, double angle) //credits Hoola
-        {
-            angle *= Math.PI / 180.0;
-            var temp = Vector2.Subtract(point2, point1);
-            var result = new Vector2(0)
-            {
-                X = (float)(temp.X * Math.Cos(angle) - temp.Y * Math.Sin(angle)) / 4,
-                Y = (float)(temp.X * Math.Sin(angle) + temp.Y * Math.Cos(angle)) / 4
-            };
-            result = Vector2.Add(result, point1);
-            return result;
-        }
-
+        
         private static void DoSomeFunkyMoves()
         {
             if (!Q.IsReady() || !Use("qth")) return;
@@ -217,6 +213,9 @@ namespace StereotypeLucian
         private static void AndThenLetsDoTheMenu()
         {
             CheapAssMenu = MainMenu.AddMenu("Lucian", "luc", "StereoType Lucian");
+
+            CheapAssMenu.Add("speed", new Slider("Combo Speed", 0, 0, 2)).OnValueChange += Speed;
+            CheapAssMenu.AddSeparator();
             CheapAssMenu.AddGroupLabel("Q Settings");
             CheapAssMenu.Add("qtc", new CheckBox("Use Q in Combo"));
             CheapAssMenu.Add("qth", new CheckBox("Use Q in Harass"));
@@ -229,20 +228,84 @@ namespace StereotypeLucian
             CheapAssMenu.Add("wtl", new CheckBox("Use W in Laneclear"));
             CheapAssMenu.AddGroupLabel("E Settings");
             CheapAssMenu.Add("emode", new Slider("Use E in Combo", 0, 0, 2)).OnValueChange += EMode;
-            ;
             CheapAssMenu.Add("etc", new CheckBox("Use E in Combo"));
             CheapAssMenu.Add("eth", new CheckBox("Use E in Harass"));
             CheapAssMenu.Add("etl", new CheckBox("Use E in Laneclear"));
             CheapAssMenu.AddGroupLabel("R Settings");
-            CheapAssMenu.Add("user", new KeyBind("Semi-Auto R (No Autolock)", false, KeyBind.BindTypes.HoldActive, 'T'));
+            CheapAssMenu.Add("user", new KeyBind("Semi-Auto R (No Lock)", false, KeyBind.BindTypes.HoldActive, 'T'));
+            CheapAssMenu.AddGroupLabel("General Settings");
+            CheapAssMenu.Add("mtf", new Slider("ManaSlider for Farm", 75));
+
+            var DrawMenu = CheapAssMenu.AddSubMenu("Drawings", "draw");
+            CheapAssMenu.Add("dmode", new Slider("Draw Mode", 0, 0, 2)).OnValueChange += DrawMode;
+            CheapAssMenu.AddSeparator();
+            CheapAssMenu.Add("dq", new CheckBox("Draw Q Range"));
+            CheapAssMenu.Add("dq1", new CheckBox("Draw Q Extended Range"));
+            CheapAssMenu.Add("dw", new CheckBox("Draw W Range"));
+            CheapAssMenu.Add("de", new CheckBox("Draw E Range"));
+            CheapAssMenu.Add("dr", new CheckBox("Draw R Range"));
+        }
+
+        private static void DrawMode(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+        {
+            UpdateSliderThree();
+        }
+
+        private static void UpdateSliderThree()
+        {
+            var sstring = "Draw Mode: ";
+
+            switch (Get("dmode"))
+            {
+                case 0:
+                    sstring = sstring + "Volatile© RangeLine™";
+                    break;
+                case 1:
+                    sstring = sstring + "Range Circles";
+                    break;
+                case 2:
+                    sstring = sstring + "None";
+                    break;
+            }
+            CheapAssMenu["dmode"].Cast<Slider>().DisplayName = sstring;
+        }
+
+        private static void Speed(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
+        {
+            UpdateSliderTwo();
+        }
+
+        private static void UpdateSliderTwo()
+        {
+            var sstring = "Speed: ";
+
+            switch (Get("speed"))
+            {
+                case 0:
+                    sstring = sstring + "Lightning (still humanized)";
+                    RandomizerOne = 14;
+                    RandomizerTwo = 17;
+                    break;
+                case 1:
+                    sstring = sstring + "Moderate";
+                    RandomizerOne = 22;
+                    RandomizerTwo = 26;
+                    break;
+                case 2:
+                    sstring = sstring + "Whyyyy";
+                    RandomizerOne = 26;
+                    RandomizerTwo = 34;
+                    break;
+            }
+            CheapAssMenu["speed"].Cast<Slider>().DisplayName = sstring;
         }
 
         private static void EMode(ValueBase<int> sender, ValueBase<int>.ValueChangeArgs args)
         {
-            UpdateSlider();
+            UpdateSliderOne();
         }
 
-        private static void UpdateSlider()
+        private static void UpdateSliderOne()
         {
             var estring = "E Mode: ";
 
@@ -261,17 +324,17 @@ namespace StereotypeLucian
             CheapAssMenu["emode"].Cast<Slider>().DisplayName = estring;
         }
 
-        private static bool Use(string id)
+        internal static bool Use(string id)
         {
             return CheapAssMenu[id].Cast<CheckBox>().CurrentValue;
         }
 
-        private static bool Mode(Orbwalker.ActiveModes id)
+        internal static bool Mode(Orbwalker.ActiveModes id)
         {
             return Orbwalker.ActiveModesFlags.HasFlag(id);
         }
 
-        private static int Get(string id)
+        internal static int Get(string id)
         {
             return CheapAssMenu[id].Cast<Slider>().CurrentValue;
         }
@@ -285,5 +348,19 @@ namespace StereotypeLucian
             E = new Spell.Skillshot(SpellSlot.E, 475, SkillShotType.Linear);
             R = new Spell.Skillshot(SpellSlot.R, 1400, SkillShotType.Linear, 500, 2800, 110);
         }
+
+        public static Vector2 RealBlackMagic(Vector2 point1, Vector2 point2, double angle) //credits Hoola - This is used for the "side"-dash
+        {
+            angle *= Math.PI / 180.0;
+            var temp = Vector2.Subtract(point2, point1);
+            var result = new Vector2(0)
+            {
+                X = (float)(temp.X * Math.Cos(angle) - temp.Y * Math.Sin(angle)) / 4,
+                Y = (float)(temp.X * Math.Sin(angle) + temp.Y * Math.Cos(angle)) / 4
+            };
+            result = Vector2.Add(result, point1);
+            return result;
+        }
+
     }
 }
